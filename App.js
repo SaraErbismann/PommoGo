@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import StatisticsScreen from './statisticsScreen';
-import SettingsScreen from './statisticsScreen';
+import SettingsScreen from './settingsScreen';
 import TimerScreen from './timerScreen';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
