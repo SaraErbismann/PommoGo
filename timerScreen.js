@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Button, IconButton } from 'react-native-paper';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { IconButton, ProgressBar } from 'react-native-paper';
 
 export default function TimerScreen() {
     const [state, setState] = useState({
@@ -60,14 +59,13 @@ export default function TimerScreen() {
         });
     };
 
-    console.log('state', state);
-    console.log('timer', timer);
+    const progress = timer.timeLeft / initialTime;
 
     return (
         <View style={styles.container}>
             <Text style={styles.timerText} >Timer page</Text>
             <Text style={styles.timerText} >{formatTime(+timer.timeLeft)}</Text>
-
+            <ProgressBar progress={progress} color='#F7634D' style={styles.progressBar} visible='true' />
             <View style={styles.buttonContainer}>
                 <IconButton
                     icon="restore"
@@ -88,7 +86,6 @@ export default function TimerScreen() {
                     onPress={handleSkip}
                 />
             </View>
-
         </View>
     );
 }
@@ -108,5 +105,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-around',
         width: '80%',
+    },
+    progressBar: {
+        marginBottom: 20,
+        width: '80%',
+        height: 10,
+        backgroundColor: '#0079C2'
     },
 });
