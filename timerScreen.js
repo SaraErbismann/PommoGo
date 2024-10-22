@@ -59,9 +59,6 @@ export default function TimerScreen() {
         });
     };
 
-    console.log('state', state);
-    console.log('timer', timer);
-
     const progress = timer.timeLeft / initialTime;
 
     return (
