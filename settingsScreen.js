@@ -33,46 +33,54 @@ export default function SettingsScreen() {
         <PaperProvider>
             <View style={styles.container}>
                 <Text style={styles.title}>Settings Page</Text>
-                <Text style={styles.label}>Timer Length</Text>
-                <Menu
-                    visible={menuVisible && selectedField === 'timerLength'}
-                    onDismiss={() => setMenuVisible(false)}
-                    anchor={<Button onPress={() => { setMenuVisible(true); setSelectedField('timerLength'); }}>{cycle.timerLength} min</Button>}
-                >
-                    {options.timerOptions?.map(option => (
-                        <Menu.Item key={option} onPress={() => handleSelect('timerLength', option)} title={`${option} min`} />
-                    ))}
-                </Menu>
-                <Text style={styles.label}>Short Break Length</Text>
-                <Menu
-                    visible={menuVisible && selectedField === 'shortBreak'}
-                    onDismiss={() => setMenuVisible(false)}
-                    anchor={<Button onPress={() => { setMenuVisible(true); setSelectedField('shortBreak'); }}>{cycle.shortBreak} min</Button>}
-                >
-                    {options.shortBreakOptions.map(option => (
-                        <Menu.Item key={option} onPress={() => handleSelect('shortBreak', option)} title={`${option} min`} />
-                    ))}
-                </Menu>
-                <Text style={styles.label}>Long Break Length</Text>
-                <Menu
-                    visible={menuVisible && selectedField === 'longBreak'}
-                    onDismiss={() => setMenuVisible(false)}
-                    anchor={<Button onPress={() => { setMenuVisible(true); setSelectedField('longBreak'); }}>{cycle.longBreak} min</Button>}
-                >
-                    {options.longBreakOptions.map(option => (
-                        <Menu.Item key={option} onPress={() => handleSelect('longBreak', option)} title={`${option} min`} />
-                    ))}
-                </Menu>
-                <Text style={styles.label}>Cycle</Text>
-                <Menu
-                    visible={menuVisible && selectedField === 'amount'}
-                    onDismiss={() => setMenuVisible(false)}
-                    anchor={<Button onPress={() => { setMenuVisible(true); setSelectedField('amount'); }}>{cycle.amount}</Button>}
-                >
-                    {options.amountOptions.map(option => (
-                        <Menu.Item key={option} onPress={() => handleSelect('amount', option)} title={`${option} min`} />
-                    ))}
-                </Menu>
+                <View style={styles.row}>
+                    <Text style={styles.label}>Timer Length</Text>
+                    <Menu
+                        visible={menuVisible && selectedField === 'timerLength'}
+                        onDismiss={() => setMenuVisible(false)}
+                        anchor={<Button onPress={() => { setMenuVisible(true); setSelectedField('timerLength'); }}>{cycle.timerLength} min</Button>}
+                    >
+                        {options.timerOptions?.map(option => (
+                            <Menu.Item key={option} onPress={() => handleSelect('timerLength', option)} title={`${option} min`} />
+                        ))}
+                    </Menu>
+                </View>
+                <View style={styles.row}>
+                    <Text style={styles.label}>Short Break Length</Text>
+                    <Menu
+                        visible={menuVisible && selectedField === 'shortBreak'}
+                        onDismiss={() => setMenuVisible(false)}
+                        anchor={<Button onPress={() => { setMenuVisible(true); setSelectedField('shortBreak'); }}>{cycle.shortBreak} min</Button>}
+                    >
+                        {options.shortBreakOptions.map(option => (
+                            <Menu.Item key={option} onPress={() => handleSelect('shortBreak', option)} title={`${option} min`} />
+                        ))}
+                    </Menu>
+                </View>
+                <View style={styles.row}>
+                    <Text style={styles.label}>Long Break Length</Text>
+                    <Menu
+                        visible={menuVisible && selectedField === 'longBreak'}
+                        onDismiss={() => setMenuVisible(false)}
+                        anchor={<Button onPress={() => { setMenuVisible(true); setSelectedField('longBreak'); }}>{cycle.longBreak} min</Button>}
+                    >
+                        {options.longBreakOptions.map(option => (
+                            <Menu.Item key={option} onPress={() => handleSelect('longBreak', option)} title={`${option} min`} />
+                        ))}
+                    </Menu>
+                </View>
+                <View style={styles.row}>
+                    <Text style={styles.label}>Cycle</Text>
+                    <Menu
+                        visible={menuVisible && selectedField === 'amount'}
+                        onDismiss={() => setMenuVisible(false)}
+                        anchor={<Button onPress={() => { setMenuVisible(true); setSelectedField('amount'); }}>{cycle.amount}</Button>}
+                    >
+                        {options.amountOptions.map(option => (
+                            <Menu.Item key={option} onPress={() => handleSelect('amount', option)} title={`${option} min`} />
+                        ))}
+                    </Menu>
+                </View>
                 <Button mode="contained" style={styles.submitButton}>
                     Save Settings
                 </Button>
@@ -96,12 +104,16 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     label: {
-        marginTop: 15,
-        marginBottom: 5,
         fontSize: 16,
         fontWeight: '600',
     },
     submitButton: {
         marginTop: 20,
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+        justifyContent: 'space-between'
     },
 });
