@@ -2,52 +2,105 @@ import { getDatabase, onValue, ref } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { IconButton, ProgressBar } from 'react-native-paper';
-import { app } from './firebaseConfig';
+//import SettingsContext from './settingsContext';
 
 export default function TimerScreen() {
+    //const { timerLength, shortBreak, longBreak, amount } = useContext(SettingsContext);
+    const timerLength = 1;
+    const shortBreak = 1;
+    const longBreak = 1;
+    const amount = 2;
     const [state, setState] = useState({
         playPauseIcon: 'pause',
         isPlay: false
     });
-    const initialTime = 5; //180 is 3 min
-    const [timer, setTimer] = useState({
-        timeLeft: initialTime,
-        isRunning: false,
+    const [cycleData, setCycleData] = useState({
+        completedTimers: 0,
+        completedShortBreaks: 0,
+        startTime: null,
+        endTime: null
     });
-    const [dbData, setDbData] = useState({});
-
-    useEffect(() => {
-        const db = getDatabase(app);
-        const dbRef = ref(db, 'cycleSettings');
-        onValue(dbRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                setDbData(data);
-            } else {
-                console.log('No db data');
-            }
-        })
-    }, []);
-
-    console.log('dbdata', dbData);
+    const [timer, setTimer] = useState({
+        timeLeft: timerLength * 60,
+        isRunning: false,
+        phase: 'timer'
+    });
 
     useEffect(() => {
         if (timer.isRunning && timer.timeLeft > 0) {
             const timeout = setTimeout(() => {
                 setTimer(prevTimer => ({
                     ...prevTimer,
-                    timeLeft: +prevTimer.timeLeft - 1
+                    timeLeft: prevTimer.timeLeft - 1
                 }));
             }, 1000);
 
             return () => clearTimeout(timeout);
         } else if (timer.timeLeft === 0) {
-            setTimer(prevTimer => ({
-                ...prevTimer,
-                isRunning: false
-            }));
+            handleCycleCompletion();
         }
     }, [timer.isRunning, timer.timeLeft]);
+
+    const handleCycleCompletion = () => {
+        if (timer.phase === 'timer') {
+            setCycleData(prevCycle => ({
+                ...prevCycle,
+                completedTimers: prevCycle.completedTimers + 1
+            }));
+            setTimer(prevTimer => ({
+                ...prevTimer,
+                timeLeft: shortBreak * 60,
+                isRunning: false,
+                phase: 'shortBreak'
+            }));
+        } else if (timer.phase === 'shortBreak') {
+            setCycleData(prevCycle => ({
+                ...prevCycle,
+                completedShortBreaks: prevCycle.completedShortBreaks + 1
+            }));
+
+            if (cycleData.completedTimers >= amount + 1) {
+
+                setTimer(prevTimer => ({
+                    ...prevTimer,
+                    timeLeft: longBreak * 60,
+                    isRunning: false,
+                    phase: 'longBreak'
+                }));
+
+                setCycleData(prevCycle => ({
+                    ...prevCycle,
+                    completedTimers: 0
+                }));
+            } else {
+                setTimer(prevTimer => ({
+                    ...prevTimer,
+                    timeLeft: timerLength * 60,
+                    isRunning: false,
+                    phase: 'timer'
+                }));
+            }
+        } else if (timer.phase === 'longBreak') {
+
+            handleEndOfCycle();
+        }
+    };
+
+    const handleEndOfCycle = () => {
+        const endTime = new Date().toISOString();
+        setCycleData(prevCycle => ({
+            ...prevCycle,
+            endTime: endTime
+        }));
+        console.log('Cycle completed:', cycleData);
+        setCycleData({
+            completedTimers: 0,
+            completedShortBreaks: 0,
+            startTime: null,
+            endTime: null
+        });
+        setTimer({ timeLeft: timerLength * 60, isRunning: false, phase: 'timer' });
+    };
 
     const formatTime = seconds => {
         const minutes = Math.floor(seconds / 60);
@@ -56,11 +109,19 @@ export default function TimerScreen() {
     };
 
     const handlePlayPause = () => {
-        setState({
-            ...state,
-            isPlay: !state.isPlay
-        });
+        setState(prevState => ({
+            ...prevState,
+            isPlay: !prevState.isPlay
+        }));
         setTimer({ ...timer, isRunning: !timer.isRunning });
+        if (!timer.isRunning) {
+            console.log('ping starttime: ', cycleData.startTime);
+            cycleData.startTime === null &&
+                setCycleData(prevCycle => ({
+                    ...prevCycle,
+                    startTime: new Date().toISOString()
+                }));
+        }
     };
 
     const handleSkip = () => {
@@ -72,16 +133,28 @@ export default function TimerScreen() {
 
     const handleRewind = () => {
         setTimer({
-            timeLeft: initialTime,
-            isRunning: false
+            timeLeft: timer.phase === 'timer' ? timerLength * 60 : shortBreak * 60,
+            isRunning: false,
+            phase: timer.phase
         });
     };
 
-    const progress = timer.timeLeft / initialTime;
+    const getHeadertext = () => {
+        if (timer.phase === 'timer') {
+            return 'Timer';
+        } else if (timer.phase === 'shortBreak') {
+            return 'Short break';
+        } else {
+            return 'Long break';
+        }
+    };
+
+    const progress = timer.timeLeft / (timer.phase === 'timer' ? timerLength * 60 : timer.phase === 'shortBreak' ? shortBreak * 60 : longBreak * 60);
+    console.log('timer phase: ', timer.phase);
 
     return (
         <View style={styles.container}>
-            <Text style={styles.timerText} >Timer page</Text>
+            <Text style={styles.timerText} >{getHeadertext()}</Text>
             <Text style={styles.timerText} >{formatTime(+timer.timeLeft)}</Text>
             <ProgressBar progress={progress} color='#F7634D' style={styles.progressBar} visible='true' />
             <View style={styles.buttonContainer}>
@@ -89,6 +162,7 @@ export default function TimerScreen() {
                     icon="restore"
                     mode="contained"
                     size={20}
+                    disabled={timer.phase === 'longBreak'}
                     onPress={handleRewind}
                 />
                 <IconButton
@@ -100,6 +174,7 @@ export default function TimerScreen() {
                 <IconButton
                     icon="chevron-right"
                     mode="contained"
+                    disabled={timer.phase === 'longBreak'}
                     size={20}
                     onPress={handleSkip}
                 />
