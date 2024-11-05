@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Button, Menu, PaperProvider, TextInput } from 'react-native-paper';
+import { handleSaveSettings } from './apiCalls';
+import SettingsContext from './settingsContext';
+
 
 export default function SettingsScreen() {
+
+    const { timerSettings } = useContext(SettingsContext);
     const [cycle, setCycle] = useState({
-        amount: 0,
-        timerLength: 0,
-        shortBreak: 0,
-        longBreak: 0
+        amount: timerSettings.amount || 4, //default value
+        timerLength: timerSettings.timerLength || 30, //default value
+        shortBreak: timerSettings.shortBreak || 10, //default value
+        longBreak: timerSettings.longBreak || 30 //default value
     });
     const options = {
         shortBreakOptions: [5, 10, 15],
@@ -15,19 +20,24 @@ export default function SettingsScreen() {
         amountOptions: [1, 2, 3, 4],
         timerOptions: [15, 20, 25, 30, 35, 40, 45, 50, 55, 60]
     };
-
     const [menuVisible, setMenuVisible] = useState(false);
     const [selectedField, setSelectedField] = useState('');
 
-    //onPress={handleSubmit}
-    console.log('options', options);
-
     const handleSelect = (field, value) => {
-        console.log(`selected field is ${field} and valu is ${value}`);
-        setCycle(prevCycle => ({ ...prevCycle, [field]: value }));
+        setCycle(prevCycle => ({
+            ...prevCycle,
+            [field]: value
+        }));
         setMenuVisible(false);
         setSelectedField('');
     };
+
+    const handleSubmit = () => {
+        console.log('submitdata is', cycle);
+        handleSaveSettings(cycle);
+    };
+
+    console.log('context testi', timerSettings);
 
     return (
         <PaperProvider>
@@ -81,7 +91,7 @@ export default function SettingsScreen() {
                         ))}
                     </Menu>
                 </View>
-                <Button mode="contained" style={styles.submitButton}>
+                <Button mode="elevated" style={styles.submitButton} onPress={() => handleSubmit()}>
                     Save Settings
                 </Button>
             </View>

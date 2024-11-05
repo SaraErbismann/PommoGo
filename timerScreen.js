@@ -1,6 +1,8 @@
+import { getDatabase, onValue, ref } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { IconButton, ProgressBar } from 'react-native-paper';
+import { app } from './firebaseConfig';
 
 export default function TimerScreen() {
     const [state, setState] = useState({
@@ -12,6 +14,22 @@ export default function TimerScreen() {
         timeLeft: initialTime,
         isRunning: false,
     });
+    const [dbData, setDbData] = useState({});
+
+    useEffect(() => {
+        const db = getDatabase(app);
+        const dbRef = ref(db, 'cycleSettings');
+        onValue(dbRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                setDbData(data);
+            } else {
+                console.log('No db data');
+            }
+        })
+    }, []);
+
+    console.log('dbdata', dbData);
 
     useEffect(() => {
         if (timer.isRunning && timer.timeLeft > 0) {
