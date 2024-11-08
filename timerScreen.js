@@ -1,16 +1,30 @@
+import { getDatabase, onValue, ref } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { IconButton, ProgressBar } from 'react-native-paper';
+import { handleSaveCycleData } from './apiCalls';
+//import SettingsContext from './settingsContext';
 
 export default function TimerScreen() {
+    //const { timerLength, shortBreak, longBreak, amount } = useContext(SettingsContext);
+    const timerLength = 0.1;
+    const shortBreak = 0.1;
+    const longBreak = 0.1;
+    const amount = 2;
     const [state, setState] = useState({
         playPauseIcon: 'pause',
         isPlay: false
     });
-    const initialTime = 5; //180 is 3 min
+    const [cycleData, setCycleData] = useState({
+        completedTimers: 0,
+        completedShortBreaks: 0,
+        startTime: null,
+        endTime: null
+    });
     const [timer, setTimer] = useState({
-        timeLeft: initialTime,
+        timeLeft: timerLength * 60,
         isRunning: false,
+        phase: 'timer'
     });
 
     useEffect(() => {
@@ -18,18 +32,85 @@ export default function TimerScreen() {
             const timeout = setTimeout(() => {
                 setTimer(prevTimer => ({
                     ...prevTimer,
-                    timeLeft: +prevTimer.timeLeft - 1
+                    timeLeft: prevTimer.timeLeft - 1
                 }));
             }, 1000);
 
             return () => clearTimeout(timeout);
         } else if (timer.timeLeft === 0) {
-            setTimer(prevTimer => ({
-                ...prevTimer,
-                isRunning: false
-            }));
+            handleCycleCompletion();
         }
     }, [timer.isRunning, timer.timeLeft]);
+
+    useEffect(() => {
+        if (cycleData.startTime || cycleData.endTime) {
+            console.log('Updated cycleData: start time is {1} and end time is {2}', [cycleData.startTime, cycleData.endTime]);
+        }
+    }, [cycleData.startTime, cycleData.endTime]);
+
+    const handleCycleCompletion = () => {
+        if (timer.phase === 'timer') {
+            setCycleData(prevCycle => ({
+                ...prevCycle,
+                completedTimers: prevCycle.completedTimers + 1
+            }));
+
+            if (cycleData.completedTimers + 1 > amount) {
+                setTimer(prevTimer => ({
+                    ...prevTimer,
+                    timeLeft: longBreak * 60,
+                    isRunning: false,
+                    phase: 'longBreak'
+                }));
+            } else {
+                setTimer(prevTimer => ({
+                    ...prevTimer,
+                    timeLeft: shortBreak * 60,
+                    isRunning: false,
+                    phase: 'shortBreak'
+                }));
+            }
+        } else if (timer.phase === 'shortBreak') {
+            setCycleData(prevCycle => ({
+                ...prevCycle,
+                completedShortBreaks: prevCycle.completedShortBreaks + 1
+            }));
+
+            setTimer(prevTimer => ({
+                ...prevTimer,
+                timeLeft: timerLength * 60,
+                isRunning: false,
+                phase: 'timer'
+            }));
+        } else if (timer.phase === 'longBreak') {
+            handleEndOfCycle();
+        }
+    };
+
+    const handleEndOfCycle = async () => {
+        const endTime = new Date().toISOString();
+
+        const updatedCycleData = {
+            ...cycleData,
+            timerLength: timerLength,
+            shortBreakLength: shortBreak,
+            longBreakLength: longBreak,
+            endTime: endTime
+        };
+        setCycleData(updatedCycleData);
+
+        console.log('Cycle completed and saved:', updatedCycleData);
+
+        await handleSaveCycleData(updatedCycleData);
+
+        setCycleData({
+            completedTimers: 0,
+            completedShortBreaks: 0,
+            startTime: null,
+            endTime: null
+        });
+        setTimer({ timeLeft: timerLength * 60, isRunning: false, phase: 'timer' });
+    };
 
     const formatTime = seconds => {
         const minutes = Math.floor(seconds / 60);
@@ -38,32 +119,59 @@ export default function TimerScreen() {
     };
 
     const handlePlayPause = () => {
-        setState({
-            ...state,
-            isPlay: !state.isPlay
-        });
-        setTimer({ ...timer, isRunning: !timer.isRunning });
+        setState(prevState => ({
+            ...prevState,
+            isPlay: !prevState.isPlay
+        }));
+
+        if (cycleData.startTime === null) {
+            setCycleData(prevCycle => ({
+                ...prevCycle,
+                startTime: new Date().toISOString()
+            }));
+        }
+
+        setTimer(prevTimer => ({
+            ...prevTimer,
+            isRunning: !prevTimer.isRunning
+        }));
     };
 
-    const handleSkip = () => {
+    const handleSkip = () => { //to-do: handle logic
         setTimer({
             timeLeft: 0,
             isRunning: false
         });
     };
 
-    const handleRewind = () => {
+    const handleRewind = () => { //to-do: handle logic
         setTimer({
-            timeLeft: initialTime,
-            isRunning: false
+            timeLeft: timer.phase === 'timer' ? timerLength * 60 : shortBreak * 60,
+            isRunning: false,
+            phase: timer.phase
         });
     };
 
-    const progress = timer.timeLeft / initialTime;
+    const getHeadertext = () => {
+        if (timer.phase === 'timer') {
+            return 'Timer';
+        } else if (timer.phase === 'shortBreak') {
+            return 'Short break';
+        } else {
+            return 'Long break';
+        }
+    };
+
+    const progress = timer.timeLeft / (timer.phase === 'timer' ? timerLength * 60 : timer.phase === 'shortBreak' ? shortBreak * 60 : longBreak * 60);
+    console.log('timer phase: ', timer.phase);
 
     return (
         <View style={styles.container}>
-            <Text style={styles.timerText} >Timer page</Text>
+            {
+                cycleData.completedTimers === 0 && !timer.isRunning &&
+                <Text style={styles.basicHeader}>New Cycle</Text>
+            }
+            <Text style={styles.timerText} >{getHeadertext()}</Text>
             <Text style={styles.timerText} >{formatTime(+timer.timeLeft)}</Text>
             <ProgressBar progress={progress} color='#F7634D' style={styles.progressBar} visible='true' />
             <View style={styles.buttonContainer}>
@@ -71,6 +179,7 @@ export default function TimerScreen() {
                     icon="restore"
                     mode="contained"
                     size={20}
+                    disabled={timer.phase === 'longBreak'}
                     onPress={handleRewind}
                 />
                 <IconButton
@@ -82,6 +191,7 @@ export default function TimerScreen() {
                 <IconButton
                     icon="chevron-right"
                     mode="contained"
+                    disabled={timer.phase === 'longBreak'}
                     size={20}
                     onPress={handleSkip}
                 />
@@ -100,6 +210,10 @@ const styles = StyleSheet.create({
         fontSize: 48,
         fontWeight: 'bold',
         marginBottom: 20,
+    },
+    basicHeader: {
+        fontSize: 30,
+        marginBottom: 10,
     },
     buttonContainer: {
         flexDirection: 'row',
