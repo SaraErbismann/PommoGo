@@ -2,6 +2,7 @@ import { getDatabase, onValue, ref } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { IconButton, ProgressBar } from 'react-native-paper';
+import { handleSaveCycleData } from './apiCalls';
 //import SettingsContext from './settingsContext';
 
 export default function TimerScreen() {
@@ -86,16 +87,21 @@ export default function TimerScreen() {
         }
     };
 
-    const handleEndOfCycle = () => {
+    const handleEndOfCycle = async () => {
         const endTime = new Date().toISOString();
 
         const updatedCycleData = {
             ...cycleData,
+            timerLength: timerLength,
+            shortBreakLength: shortBreak,
+            longBreakLength: longBreak,
             endTime: endTime
         };
         setCycleData(updatedCycleData);
 
         console.log('Cycle completed and saved:', updatedCycleData);
+
+        await handleSaveCycleData(updatedCycleData);
 
         setCycleData({
             completedTimers: 0,
@@ -131,14 +137,14 @@ export default function TimerScreen() {
         }));
     };
 
-    const handleSkip = () => {
+    const handleSkip = () => { //to-do: handle logic
         setTimer({
             timeLeft: 0,
             isRunning: false
         });
     };
 
-    const handleRewind = () => {
+    const handleRewind = () => { //to-do: handle logic
         setTimer({
             timeLeft: timer.phase === 'timer' ? timerLength * 60 : shortBreak * 60,
             isRunning: false,

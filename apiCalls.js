@@ -17,7 +17,17 @@ export async function handleSaveSettings(data) {
     }
 }
 
-export async function getCycleData() {
+//Save cycle data automatically after the long break from the timer screen
+export async function handleSaveCycleData(cycleData) {
+    if (Object.keys(cycleData).length > 0) {
+        try {
+            const cycleDataRef = ref(db, 'cycleData');
 
+            await push(cycleDataRef, cycleData);
+            console.log("Cycle data saved successfully!");
+        } catch (error) {
+            console.error("Error saving cycle data:", error);
+        }
+    }
 }
 
