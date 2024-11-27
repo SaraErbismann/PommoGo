@@ -1,7 +1,7 @@
 import { getDatabase, onValue, ref } from 'firebase/database';
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { IconButton, ProgressBar } from 'react-native-paper';
+import { IconButton } from 'react-native-paper';
 import { handleSaveCycleData } from './apiCalls';
 //import SettingsContext from './settingsContext';
 
@@ -162,9 +162,6 @@ export default function TimerScreen() {
         }
     };
 
-    const progress = timer.timeLeft / (timer.phase === 'timer' ? timerLength * 60 : timer.phase === 'shortBreak' ? shortBreak * 60 : longBreak * 60);
-    console.log('timer phase: ', timer.phase);
-
     return (
         <View style={styles.container}>
             {
@@ -173,7 +170,6 @@ export default function TimerScreen() {
             }
             <Text style={styles.timerText} >{getHeadertext()}</Text>
             <Text style={styles.timerText} >{formatTime(+timer.timeLeft)}</Text>
-            <ProgressBar progress={progress} color='#F7634D' style={styles.progressBar} visible='true' />
             <View style={styles.buttonContainer}>
                 <IconButton
                     icon="restore"
