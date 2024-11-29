@@ -5,6 +5,7 @@ const db = getDatabase(app);
 
 // Save/update cycle settings from the settings page
 export async function handleSaveSettings(data) {
+
     if (Object.keys(data).length > 0) {
         try {
             const settingsRef = ref(db, 'cycleSettings');

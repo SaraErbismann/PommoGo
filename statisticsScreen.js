@@ -10,6 +10,7 @@ const StatisticsScreen = () => {
     const database = getDatabase(app);
     const [dbData, setDbData] = useState([]);
     const [dateRangeBtn, setDateRangeBtn] = useState('D');
+    const [statisticsData, setStatisticsData] = useState({});
 
     const handleDateRange = () => {
         const range = dateRangeBtn;
@@ -22,38 +23,36 @@ const StatisticsScreen = () => {
             const entryDate = new Date(entry.endTime);
             return compareAsc(entryDate, new Date(comparisonDate)) >= 0;
         });
-        console.log('filtered data', filteredData);
 
         if (filteredData.length > 0) {
-            filteredData.reduce(
+            const reducedData = filteredData.reduce(
                 (acc, entry) => {
-
-                    const { completedTimers, completedShortBreaks, completedLongBreaks, longBreakLength, shortBreakLength, timerLength } = entry;
-
+                    const { completedTimers, completedShortBreaks, longBreakLength, shortBreakLength, timerLength } = entry;
+                    const timerLengthSec = timerLength * 60;
+                    const shortBreakLengthSec = shortBreakLength * 60;
+                    const longBreakLengthSec = longBreakLength * 60;
 
                     acc.completedTimers += completedTimers || 0;
-                    acc.completedShortBreaks += completedShortBreaks || 0;
-                    acc.completedLongBreaks += completedLongBreaks || 0;
+                    acc.completedBreaks += completedShortBreaks || 0;
 
-                    acc.timeSpentTimer += (completedTimers || 0) * timerLength;
-                    acc.timeSpentShortBreak += (completedShortBreaks || 0) * shortBreakLength;
-                    acc.timeSpentLongBreak += (completedLongBreaks || 0) * longBreakLength;
+                    acc.timeSpentTimer += (completedTimers || 0) * timerLengthSec;
+                    acc.timeSpentOnBreak += (completedShortBreaks || 0) * shortBreakLengthSec;
+
+                    acc.timeSpentOnBreak += longBreakLengthSec;
 
                     return acc;
                 },
                 {
                     completedTimers: 0,
-                    completedShortBreaks: 0,
-                    completedLongBreaks: 0,
+                    completedBreaks: 0,
                     timeSpentTimer: 0,
-                    timeSpentShortBreak: 0,
-                    timeSpentLongBreak: 0,
+                    timeSpentOnBreak: 0,
                 }
             );
+            console.log('reduced data after reduce', reducedData);
+            return reducedData;
         }
-
-        console.log('filter data after reduce', filteredData);
-        return filteredData;
+        return {};
     };
 
     useEffect(() => {
@@ -69,8 +68,27 @@ const StatisticsScreen = () => {
     }, []);
 
     useEffect(() => {
-        handleDateFiltering();
-    }, [dateRangeBtn])
+        if (dbData.length > 0) {
+            const statistics = handleDateFiltering();
+            setStatisticsData(statistics);
+        }
+    }, [dateRangeBtn, dbData]);
+
+    const formatTime = (totalSeconds) => {
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        if (hours > 0) {
+            return `${hours}h ${minutes}min`;
+        } else if (minutes > 0) {
+            return `${minutes}min`;
+        } else {
+            return `${seconds}s`;
+        }
+    };
+
+    console.log('stats data', statisticsData);
 
     return (
         <PaperProvider>
@@ -97,25 +115,23 @@ const StatisticsScreen = () => {
                         <DataTable.Title numeric>Count</DataTable.Title>
                         <DataTable.Title numeric>Time Spent</DataTable.Title>
                     </DataTable.Header>
-
-                    {/* Placeholder Rows for Data */}
-                    <DataTable.Row>
-                        <DataTable.Cell>Focus Sessions</DataTable.Cell>
-                        <DataTable.Cell numeric>12</DataTable.Cell>
-                        <DataTable.Cell numeric>4h 30m</DataTable.Cell>
-                    </DataTable.Row>
-
-                    <DataTable.Row>
-                        <DataTable.Cell>Short breaks</DataTable.Cell>
-                        <DataTable.Cell numeric>5</DataTable.Cell>
-                        <DataTable.Cell numeric>30m</DataTable.Cell>
-                    </DataTable.Row>
-
-                    <DataTable.Row>
-                        <DataTable.Cell>Long breaks</DataTable.Cell>
-                        <DataTable.Cell numeric>5</DataTable.Cell>
-                        <DataTable.Cell numeric>30m</DataTable.Cell>
-                    </DataTable.Row>
+                    {
+                        Object.keys(statisticsData).length > 0 ?
+                            <>
+                                <DataTable.Row>
+                                    <DataTable.Cell>Focus Sessions</DataTable.Cell>
+                                    <DataTable.Cell numeric>{statisticsData.completedTimers}</DataTable.Cell>
+                                    <DataTable.Cell numeric>{formatTime(statisticsData.timeSpentTimer)}</DataTable.Cell>
+                                </DataTable.Row>
+                                <DataTable.Row>
+                                    <DataTable.Cell>Total breaks</DataTable.Cell>
+                                    <DataTable.Cell numeric>{statisticsData.completedBreaks}</DataTable.Cell>
+                                    <DataTable.Cell numeric>{formatTime(statisticsData.timeSpentOnBreak)}</DataTable.Cell>
+                                </DataTable.Row>
+                            </>
+                            :
+                            <Text style={styles.noDataText}>No statistics datat available for given date selection</Text>
+                    }
                 </DataTable>
             </View>
         </PaperProvider>
@@ -147,6 +163,11 @@ const styles = StyleSheet.create({
     chartText: {
         fontSize: 16,
         color: '#666666',
+    },
+    noDataText: {
+        fontSize: 16,
+        color: '#666666',
+        marginTop: 20
     },
 });
 

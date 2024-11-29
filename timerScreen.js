@@ -42,12 +42,6 @@ export default function TimerScreen() {
         }
     }, [timer.isRunning, timer.timeLeft]);
 
-    useEffect(() => {
-        if (cycleData.startTime || cycleData.endTime) {
-            console.log('Updated cycleData: start time is {1} and end time is {2}', [cycleData.startTime, cycleData.endTime]);
-        }
-    }, [cycleData.startTime, cycleData.endTime]);
-
     const handleCycleCompletion = () => {
         if (timer.phase === 'timer') {
             setCycleData(prevCycle => ({
