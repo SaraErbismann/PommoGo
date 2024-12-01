@@ -1,31 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { DataTable, PaperProvider, SegmentedButtons } from 'react-native-paper';
+import { DataTable, IconButton, PaperProvider, SegmentedButtons } from 'react-native-paper';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { app } from './firebaseConfig';
-import getComparisonDate from './helpers';
-import { compareAsc, parseISO } from 'date-fns';
+import getComparisonDate, { getLabelsBetweenDates, groupFilteredData, handleDataGrouping } from './helpers';
+import { addDays, addMonths, addWeeks, addYears, compareAsc, format, getWeek, subDays, subMonths, subWeeks, subYears } from 'date-fns';
+import StatisticsChart from './statisticsChart';
 
 const StatisticsScreen = () => {
     const database = getDatabase(app);
     const [dbData, setDbData] = useState([]);
     const [dateRangeBtn, setDateRangeBtn] = useState('D');
     const [statisticsData, setStatisticsData] = useState({});
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [chartData, setChartData] = useState({});
+    const [filteredData, setFilteredData] = useState([]);
 
     const handleDateRange = () => {
         const range = dateRangeBtn;
-        return getComparisonDate(range);
+        return getComparisonDate(range, currentDate);
     };
 
     const handleDateFiltering = () => {
-        const comparisonDate = handleDateRange();
-        const filteredData = dbData?.filter(entry => {
+        const { startDate, endDate } = handleDateRange();
+        const filtered = dbData?.filter(entry => {
             const entryDate = new Date(entry.endTime);
-            return compareAsc(entryDate, new Date(comparisonDate)) >= 0;
+            return compareAsc(entryDate, startDate) >= 0 && compareAsc(entryDate, endDate) <= 0;
         });
 
-        if (filteredData.length > 0) {
-            const reducedData = filteredData.reduce(
+        setFilteredData(filtered);
+
+        if (filtered.length > 0) {
+            const reducedData = filtered.reduce(
                 (acc, entry) => {
                     const { completedTimers, completedShortBreaks, longBreakLength, shortBreakLength, timerLength } = entry;
                     const timerLengthSec = timerLength * 60;
@@ -38,6 +44,7 @@ const StatisticsScreen = () => {
                     acc.timeSpentTimer += (completedTimers || 0) * timerLengthSec;
                     acc.timeSpentOnBreak += (completedShortBreaks || 0) * shortBreakLengthSec;
 
+                    acc.completedBreaks += 1; //account for 1 long break per cycle
                     acc.timeSpentOnBreak += longBreakLengthSec;
 
                     return acc;
@@ -49,10 +56,27 @@ const StatisticsScreen = () => {
                     timeSpentOnBreak: 0,
                 }
             );
-            console.log('reduced data after reduce', reducedData);
+
             return reducedData;
         }
         return {};
+    };
+
+    const handleChevronClick = (direction) => {
+        setCurrentDate((prevDate) => {
+            switch (dateRangeBtn) {
+                case 'D':
+                    return direction === 'left' ? subDays(prevDate, 1) : addDays(prevDate, 1);
+                case 'W':
+                    return direction === 'left' ? subWeeks(prevDate, 1) : addWeeks(prevDate, 1);
+                case 'M':
+                    return direction === 'left' ? subMonths(prevDate, 1) : addMonths(prevDate, 1);
+                case 'Y':
+                    return direction === 'left' ? subYears(prevDate, 1) : addYears(prevDate, 1);
+                default:
+                    return prevDate;
+            }
+        });
     };
 
     useEffect(() => {
@@ -68,11 +92,24 @@ const StatisticsScreen = () => {
     }, []);
 
     useEffect(() => {
+        setCurrentDate(new Date());
+    }, [dateRangeBtn]);
+
+    useEffect(() => {
         if (dbData.length > 0) {
-            const statistics = handleDateFiltering();
-            setStatisticsData(statistics);
+            const statsData = handleDateFiltering();
+            setStatisticsData(statsData);
         }
-    }, [dateRangeBtn, dbData]);
+    }, [currentDate, dbData, dateRangeBtn]);
+
+    useEffect(() => {
+        if (filteredData.length > 0) {
+            const formattedData = groupFilteredData(filteredData, dateRangeBtn);
+            setChartData(formattedData);
+        } else {
+            setChartData(null);
+        }
+    }, [filteredData, dateRangeBtn]);
 
     const formatTime = (totalSeconds) => {
         const hours = Math.floor(totalSeconds / 3600);
@@ -82,13 +119,30 @@ const StatisticsScreen = () => {
         if (hours > 0) {
             return `${hours}h ${minutes}min`;
         } else if (minutes > 0) {
-            return `${minutes}min`;
+            return `${minutes}min ${seconds}s`;
         } else {
             return `${seconds}s`;
         }
     };
 
-    console.log('stats data', statisticsData);
+    const formatDate = () => {
+        switch (dateRangeBtn) {
+            case 'D':
+                return format(currentDate, 'dd.MM.yyyy');
+            case 'W':
+                return ` Week ${getWeek(currentDate, 'dd.MM.yyyy')}`;
+            case 'M':
+                return format(currentDate, 'MMMM yyyy');
+            case 'Y':
+                return format(currentDate, 'yyyy');
+            default:
+                return '';
+        }
+    };
+
+    console.log('chartData', chartData);
+    console.log('statsdata', statisticsData);
+    console.log('filteredData state', filteredData);
 
     return (
         <PaperProvider>
@@ -98,16 +152,55 @@ const StatisticsScreen = () => {
                     value={dateRangeBtn}
                     onValueChange={setDateRangeBtn}
                     buttons={[
-                        { value: 'D', label: 'D' },
-                        { value: 'W', label: 'W' },
-                        { value: 'M', label: 'M' },
-                        { value: 'Y', label: 'Y' }
+                        {
+                            value: 'D',
+                            label: 'D',
+                            style: dateRangeBtn === 'D' ? styles.selectedButton : styles.unselectedButton,
+                            labelStyle: dateRangeBtn === 'D' ? styles.selectedText : styles.unselectedText,
+                        },
+                        {
+                            value: 'W',
+                            label: 'W',
+                            style: dateRangeBtn === 'W' ? styles.selectedButton : styles.unselectedButton,
+                            labelStyle: dateRangeBtn === 'W' ? styles.selectedText : styles.unselectedText,
+                        },
+                        {
+                            value: 'M',
+                            label: 'M',
+                            style: dateRangeBtn === 'M' ? styles.selectedButton : styles.unselectedButton,
+                            labelStyle: dateRangeBtn === 'M' ? styles.selectedText : styles.unselectedText,
+                        },
+                        {
+                            value: 'Y',
+                            label: 'Y',
+                            style: dateRangeBtn === 'Y' ? styles.selectedButton : styles.unselectedButton,
+                            labelStyle: dateRangeBtn === 'Y' ? styles.selectedText : styles.unselectedText,
+                        }
                     ]}
                     style={styles.segmentedButtons}
                     density='small'
+                    theme={{ colors: { primary: '#33658A' } }}
                 />
+                <View style={styles.dateSelector}>
+                    <IconButton
+                        icon="chevron-left"
+                        size={24}
+                        onPress={() => handleChevronClick('left')}
+                    />
+                    <Text style={styles.dateText}>{formatDate()}</Text>
+                    <IconButton
+                        icon="chevron-right"
+                        size={24}
+                        onPress={() => handleChevronClick('right')}
+                    />
+                </View>
                 <View style={styles.chartPlaceholder}>
-                    <Text style={styles.chartText}>Bar Chart Placeholder</Text>
+                    {
+                        chartData && Object.keys(chartData).length > 0 ?
+                            <StatisticsChart data={chartData} />
+                            :
+                            <Text style={styles.chartText}>No chart data available</Text>
+                    }
                 </View>
                 <DataTable>
                     <DataTable.Header>
@@ -116,7 +209,7 @@ const StatisticsScreen = () => {
                         <DataTable.Title numeric>Time Spent</DataTable.Title>
                     </DataTable.Header>
                     {
-                        Object.keys(statisticsData).length > 0 ?
+                        statisticsData && Object.keys(statisticsData).length > 0 ?
                             <>
                                 <DataTable.Row>
                                     <DataTable.Cell>Focus Sessions</DataTable.Cell>
@@ -148,26 +241,55 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 20,
+        marginTop: 50,
+        flexShrink: 1,
     },
     segmentedButtons: {
         marginBottom: 20,
         alignSelf: 'center',
     },
     chartPlaceholder: {
-        height: 200,
-        backgroundColor: '#E0E0E0',
+        height: 250,
+        backgroundColor: '#86BBD8',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 20,
+        overflow: 'hidden',
+        borderRadius: 10,
     },
     chartText: {
         fontSize: 16,
-        color: '#666666',
+        color: '#ffffff',
     },
     noDataText: {
         fontSize: 16,
         color: '#666666',
         marginTop: 20
+    },
+    dateSelector: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 20,
+    },
+    dateText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    selectedButton: {
+        backgroundColor: '#33658A',
+        borderColor: '#33658A',
+    },
+    unselectedButton: {
+        backgroundColor: '#f0f0f0',
+        borderColor: '#cccccc',
+    },
+    selectedText: {
+        color: '#FFFFFF', // White text for selected buttons
+        fontWeight: 'bold', // Optional: Make it bold for emphasis
+    },
+    unselectedText: {
+        color: '#000000', // Black or default text color for unselected buttons
     },
 });
 

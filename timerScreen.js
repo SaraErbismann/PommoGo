@@ -4,6 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { handleSaveCycleData } from './apiCalls';
 //import SettingsContext from './settingsContext';
+import Svg, { Image, Path } from 'react-native-svg';
 
 export default function TimerScreen() {
     //const { timerLength, shortBreak, longBreak, amount } = useContext(SettingsContext);
@@ -158,12 +159,12 @@ export default function TimerScreen() {
 
     return (
         <View style={styles.container}>
+            <Text style={styles.headerText} >{getHeadertext()}</Text>
+            <Text style={styles.timerText} >{formatTime(+timer.timeLeft)}</Text>
             {
                 cycleData.completedTimers === 0 && !timer.isRunning &&
                 <Text style={styles.basicHeader}>New Cycle</Text>
             }
-            <Text style={styles.timerText} >{getHeadertext()}</Text>
-            <Text style={styles.timerText} >{formatTime(+timer.timeLeft)}</Text>
             <View style={styles.buttonContainer}>
                 <IconButton
                     icon="restore"
@@ -171,12 +172,16 @@ export default function TimerScreen() {
                     size={20}
                     disabled={timer.phase === 'longBreak'}
                     onPress={handleRewind}
+                    iconColor='#FFFFFF'
+                    containerColor='#86BBD8'
                 />
                 <IconButton
                     icon={state.isPlay ? 'pause' : 'play'}
                     mode="contained"
                     size={20}
                     onPress={handlePlayPause}
+                    iconColor='#FFFFFF'
+                    containerColor='#86BBD8'
                 />
                 <IconButton
                     icon="chevron-right"
@@ -184,6 +189,8 @@ export default function TimerScreen() {
                     disabled={timer.phase === 'longBreak'}
                     size={20}
                     onPress={handleSkip}
+                    iconColor='#FFFFFF'
+                    containerColor='#86BBD8'
                 />
             </View>
         </View>
@@ -199,7 +206,13 @@ const styles = StyleSheet.create({
     timerText: {
         fontSize: 48,
         fontWeight: 'bold',
-        marginBottom: 20,
+        marginBottom: 50,
+        flexShrink: 1,
+    },
+    headerText: {
+        fontSize: 48,
+        fontWeight: 'bold',
+        marginTop: 50,
     },
     basicHeader: {
         fontSize: 30,
@@ -215,5 +228,13 @@ const styles = StyleSheet.create({
         width: '80%',
         height: 10,
         backgroundColor: '#0079C2'
+    },
+    backgroundImage: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: -1, // Ensure the background stays behind text
     },
 });

@@ -29,6 +29,8 @@ export default function App() {
 
               return <Ionicons name={iconName} size={size} color={color} />;
             },
+            tabBarActiveTintColor: '#33658A',
+            headerShown: false,
           })}
         >
           <Tab.Screen name='Statistics' component={StatisticsScreen} />
