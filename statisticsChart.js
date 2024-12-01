@@ -8,8 +8,8 @@ export default function StatisticsChart({ data }) {
 
     const chartConfig = {
         backgroundColor: '#86BBD8',
-        backgroundGradientFrom: '#86BBD8',
-        backgroundGradientTo: '#86BBD8',
+        backgroundGradientFrom: '#33658A',
+        backgroundGradientTo: '#33658A',
         decimalPlaces: 1,
         color: (opacity = 0) => `rgba(255, 255, 255, ${opacity})`,
         labelColor: (opacity = 0) => `rgba(255, 255, 255, ${opacity})`,

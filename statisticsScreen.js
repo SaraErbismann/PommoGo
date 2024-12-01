@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     },
     chartPlaceholder: {
         height: 250,
-        backgroundColor: '#86BBD8',
+        backgroundColor: '#33658A',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 20,
@@ -285,11 +285,11 @@ const styles = StyleSheet.create({
         borderColor: '#cccccc',
     },
     selectedText: {
-        color: '#FFFFFF', // White text for selected buttons
-        fontWeight: 'bold', // Optional: Make it bold for emphasis
+        color: '#FFFFFF',
+        fontWeight: 'bold',
     },
     unselectedText: {
-        color: '#000000', // Black or default text color for unselected buttons
+        color: '#000000',
     },
 });
 

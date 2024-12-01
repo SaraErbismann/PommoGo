@@ -132,16 +132,27 @@ export default function TimerScreen() {
         }));
     };
 
-    const handleSkip = () => { //to-do: handle logic
-        setTimer({
-            timeLeft: 0,
-            isRunning: false
-        });
+    const handleSkip = () => {
+        if (timer.phase === 'timer') {
+            setTimer({
+                timeLeft: shortBreak * 60,
+                isRunning: false,
+                phase: 'shortBreak'
+            });
+        } else if (timer.phase === 'shortBreak') {
+            setTimer({
+                timeLeft: timerLength * 60,
+                isRunning: false,
+                phase: 'timer'
+            });
+        } else if (timer.phase === 'longBreak') {
+            alert('Skipping is not allowed during the long break!');
+        }
     };
 
-    const handleRewind = () => { //to-do: handle logic
+    const handleRewind = () => {
         setTimer({
-            timeLeft: timer.phase === 'timer' ? timerLength * 60 : shortBreak * 60,
+            timeLeft: timer.phase === 'timer' ? timerLength * 60 : timer.phase === 'shortBreak' ? shortBreak * 60 : longBreak * 60,
             isRunning: false,
             phase: timer.phase
         });
@@ -235,6 +246,6 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: -1, // Ensure the background stays behind text
+        zIndex: -1,
     },
 });
