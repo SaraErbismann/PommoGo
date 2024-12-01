@@ -61,7 +61,6 @@ export const groupFilteredData = (filteredData, dateRangeBtn) => {
             groupedData[label] = 0;
         }
         groupedData[label] += entry.completedTimers || 0;
-        console.log('groupedData', groupedData);
     });
 
     const labels = Object.keys(groupedData);

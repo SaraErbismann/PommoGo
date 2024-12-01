@@ -140,10 +140,6 @@ const StatisticsScreen = () => {
         }
     };
 
-    console.log('chartData', chartData);
-    console.log('statsdata', statisticsData);
-    console.log('filteredData state', filteredData);
-
     return (
         <PaperProvider>
             <View style={styles.container}>
