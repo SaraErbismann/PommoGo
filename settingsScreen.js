@@ -33,7 +33,6 @@ export default function SettingsScreen() {
     };
 
     const handleSubmit = () => {
-        console.log('submitdata is', cycle);
         handleSaveSettings(cycle);
     };
 
