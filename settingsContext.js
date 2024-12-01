@@ -7,9 +7,9 @@ const SettingsContext = createContext();
 export const SettingsProvider = ({ children }) => {
     const [timerSettings, setTimerSettings] = useState({
         amount: 4,
-        timerLength: 1800,
-        shortBreak: 600,
-        longBreak: 1800,
+        timerLength: 30,
+        shortBreak: 10,
+        longBreak: 30,
     });
 
     useEffect(() => {
