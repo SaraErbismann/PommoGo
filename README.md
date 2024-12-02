@@ -31,3 +31,8 @@ This app is built with the following technologies:
 1. **Timer Screen**: The main screen for managing work and break phases.
 2. **Statistics Screen**: Visual representation of user progress and trends.
 3. **Settings Screen**: Allows users to customize the timer and other app settings.
+
+## Illustrations
+
+1. **Blob GIF**: Was made with a free blob generator: https://blobs.xom9ik.com/
+2. **Logo**: Was made with Canva
