@@ -19,6 +19,7 @@ This app is built with the following technologies:
 - **React Native**: Core framework for building the mobile app.
 - **Expo**: Framework and platform for universal React applications.
 - **Expo Go**: For testing and running the app.
+- **Expo SDK**: Utilize devices sensors, the gyroscope to be exact, to send notifications if user in using their phone during concentration time.
 - **Firebase**: Real-time database for storing and retrieving data.
 - **React Navigation**: For managing navigation between screens.
 - **React Native Paper**: UI components for a polished and responsive design.
@@ -30,3 +31,8 @@ This app is built with the following technologies:
 1. **Timer Screen**: The main screen for managing work and break phases.
 2. **Statistics Screen**: Visual representation of user progress and trends.
 3. **Settings Screen**: Allows users to customize the timer and other app settings.
+
+## Illustrations
+
+1. **Blob GIF**: Was made with a free blob generator: https://blobs.xom9ik.com/
+2. **Logo**: Was made with Canva
