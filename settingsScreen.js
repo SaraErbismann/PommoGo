@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Button, Menu, PaperProvider, TextInput } from 'react-native-paper';
+import { Button, Menu, PaperProvider } from 'react-native-paper';
 import { handleSaveSettings } from './apiCalls';
 import SettingsContext from './settingsContext';
 

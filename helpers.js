@@ -1,5 +1,15 @@
-import { endOfDay, endOfMonth, endOfWeek, endOfYear, isLeapYear, startOfDay, startOfMonth, startOfWeek, startOfYear } from 'date-fns';
-import { format, eachDayOfInterval, addWeeks, addMonths, addYears, getWeek, addDays } from 'date-fns';
+import {
+    endOfDay,
+    endOfMonth,
+    endOfWeek,
+    endOfYear,
+    startOfDay,
+    startOfMonth,
+    startOfWeek,
+    startOfYear,
+    format,
+    getWeek
+} from 'date-fns';
 
 export default function getComparisonDate(range, currentDate) {
     let startDate, endDate;
@@ -29,9 +39,8 @@ export default function getComparisonDate(range, currentDate) {
 
 export const groupFilteredData = (filteredData, dateRangeBtn) => {
     const groupedData = {};
-    const returnData = { labels: [], datasets: [{}] };
 
-    filteredData.map(entry => {
+    filteredData.map(entry => { //map through filteredData prop (from statistics screen) and group entries based on the daterange selected
         const entryDate = new Date(entry.endTime);
         let label;
 
@@ -57,16 +66,16 @@ export const groupFilteredData = (filteredData, dateRangeBtn) => {
                 return;
         }
 
-        if (!groupedData[label]) {
+        if (!groupedData[label]) { //if the groupedData does not have the label, add it
             groupedData[label] = 0;
         }
-        groupedData[label] += entry.completedTimers || 0;
+        groupedData[label] += entry.completedTimers || 0; //if the groupedData has the label, increment completedTimers
     });
 
     const labels = Object.keys(groupedData);
     const data = labels.map(label => groupedData[label]);
 
-    return {
+    return { //this data structure is required by react-native-chart-kit for bar chart
         labels,
         datasets: [{ data }],
     };

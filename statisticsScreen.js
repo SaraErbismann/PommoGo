@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { DataTable, IconButton, PaperProvider, SegmentedButtons } from 'react-native-paper';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { app } from './firebaseConfig';
-import getComparisonDate, { getLabelsBetweenDates, groupFilteredData, handleDataGrouping } from './helpers';
+import getComparisonDate, { groupFilteredData } from './helpers';
 import { addDays, addMonths, addWeeks, addYears, compareAsc, format, getWeek, subDays, subMonths, subWeeks, subYears } from 'date-fns';
 import StatisticsChart from './statisticsChart';
 
@@ -175,7 +175,7 @@ const StatisticsScreen = () => {
                     ]}
                     style={styles.segmentedButtons}
                     density='small'
-                    theme={{ colors: { primary: '#33658A' } }}
+                    theme={{ colors: { primary: '#33658A' }, elevation: 0, shadowColor: 'transparent' }}
                 />
                 <View style={styles.dateSelector}>
                     <IconButton
@@ -195,7 +195,7 @@ const StatisticsScreen = () => {
                         chartData && Object.keys(chartData).length > 0 ?
                             <StatisticsChart data={chartData} />
                             :
-                            <Text style={styles.chartText}>No chart data available</Text>
+                            <Text style={styles.chartText}>No chart data for given date selection</Text>
                     }
                 </View>
                 <DataTable>
@@ -219,7 +219,7 @@ const StatisticsScreen = () => {
                                 </DataTable.Row>
                             </>
                             :
-                            <Text style={styles.noDataText}>No statistics datat available for given date selection</Text>
+                            <Text style={styles.noDataText}>No statistics data for given date selection</Text>
                     }
                 </DataTable>
             </View>
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        marginBottom: 20,
+        marginBottom: 30,
         marginTop: 50,
         flexShrink: 1,
     },
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     noDataText: {
         fontSize: 16,
         color: '#666666',
-        marginTop: 20
+        marginTop: 20,
     },
     dateSelector: {
         flexDirection: 'row',

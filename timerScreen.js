@@ -1,20 +1,15 @@
-import { getDatabase, onValue, ref } from 'firebase/database';
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { handleSaveCycleData } from './apiCalls';
-//import SettingsContext from './settingsContext';
-import Svg, { Image, Path } from 'react-native-svg';
+import SettingsContext from './settingsContext';
 
 export default function TimerScreen() {
-    //const { timerLength, shortBreak, longBreak, amount } = useContext(SettingsContext);
-    const timerLength = 0.1;
-    const shortBreak = 0.1;
-    const longBreak = 0.1;
-    const amount = 2;
+    const { timerSettings } = useContext(SettingsContext);
+    const { timerLength, shortBreak, longBreak, amount } = timerSettings;
     const [state, setState] = useState({
         playPauseIcon: 'pause',
-        isPlay: false
+        isPlay: false //used for getting icon for play/pause iconbutton
     });
     const [cycleData, setCycleData] = useState({
         completedTimers: 0,
@@ -42,6 +37,12 @@ export default function TimerScreen() {
             handleCycleCompletion();
         }
     }, [timer.isRunning, timer.timeLeft]);
+
+    useEffect(() => {
+        if (timer.isRunning) {
+            setKey(prevKey => prevKey + 1);
+        }
+    }, [timer.isRunning]);
 
     const handleCycleCompletion = () => {
         if (timer.phase === 'timer') {
@@ -168,10 +169,23 @@ export default function TimerScreen() {
         }
     };
 
+    const renderGif = () => {
+        return (
+            <Image
+                source={require('./assets/blob-1-opacity-65.gif')}
+                style={styles.gif}
+            />
+        );
+    };
+
     return (
         <View style={styles.container}>
-            <Text style={styles.headerText} >{getHeadertext()}</Text>
-            <Text style={styles.timerText} >{formatTime(+timer.timeLeft)}</Text>
+            <View style={styles.overlayContainer}>
+                <Text style={styles.headerText} >{getHeadertext()}</Text>
+                <Text style={styles.timerText} >{formatTime(+timer.timeLeft)}</Text>
+            </View>
+
+            {renderGif()}
             {
                 cycleData.completedTimers === 0 && !timer.isRunning &&
                 <Text style={styles.basicHeader}>New Cycle</Text>
@@ -184,7 +198,7 @@ export default function TimerScreen() {
                     disabled={timer.phase === 'longBreak'}
                     onPress={handleRewind}
                     iconColor='#FFFFFF'
-                    containerColor='#86BBD8'
+                    containerColor='#33658A'
                 />
                 <IconButton
                     icon={state.isPlay ? 'pause' : 'play'}
@@ -192,7 +206,7 @@ export default function TimerScreen() {
                     size={20}
                     onPress={handlePlayPause}
                     iconColor='#FFFFFF'
-                    containerColor='#86BBD8'
+                    containerColor='#33658A'
                 />
                 <IconButton
                     icon="chevron-right"
@@ -201,7 +215,7 @@ export default function TimerScreen() {
                     size={20}
                     onPress={handleSkip}
                     iconColor='#FFFFFF'
-                    containerColor='#86BBD8'
+                    containerColor='#33658A'
                 />
             </View>
         </View>
@@ -219,11 +233,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 50,
         flexShrink: 1,
+        color: '#FFFFFF'
     },
     headerText: {
         fontSize: 48,
         fontWeight: 'bold',
         marginTop: 50,
+        color: '#FFFFFF'
     },
     basicHeader: {
         fontSize: 30,
@@ -234,18 +250,16 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
         width: '80%',
     },
-    progressBar: {
+    gif: {
+        width: 350,
+        height: 350,
         marginBottom: 20,
-        width: '80%',
-        height: 10,
-        backgroundColor: '#0079C2'
     },
-    backgroundImage: {
+    overlayContainer: {
         position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: -1,
-    },
+        top: '30%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1,
+    }
 });
