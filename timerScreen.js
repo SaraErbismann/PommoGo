@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
-import { IconButton } from 'react-native-paper';
+import { IconButton, PaperProvider } from 'react-native-paper';
 import { handleSaveCycleData } from './apiCalls';
 import SettingsContext from './settingsContext';
+import GyroscopeNotifications from './gyroscope';
 
 export default function TimerScreen() {
     const { timerSettings } = useContext(SettingsContext);
@@ -37,12 +38,6 @@ export default function TimerScreen() {
             handleCycleCompletion();
         }
     }, [timer.isRunning, timer.timeLeft]);
-
-    useEffect(() => {
-        if (timer.isRunning) {
-            setKey(prevKey => prevKey + 1);
-        }
-    }, [timer.isRunning]);
 
     const handleCycleCompletion = () => {
         if (timer.phase === 'timer') {
@@ -179,46 +174,49 @@ export default function TimerScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.overlayContainer}>
-                <Text style={styles.headerText} >{getHeadertext()}</Text>
-                <Text style={styles.timerText} >{formatTime(+timer.timeLeft)}</Text>
-            </View>
+        <PaperProvider>
+            <View style={styles.container}>
+                <View style={styles.overlayContainer}>
+                    <Text style={styles.headerText} >{getHeadertext()}</Text>
+                    <Text style={styles.timerText} >{formatTime(+timer.timeLeft)}</Text>
+                </View>
 
-            {renderGif()}
-            {
-                cycleData.completedTimers === 0 && !timer.isRunning &&
-                <Text style={styles.basicHeader}>New Cycle</Text>
-            }
-            <View style={styles.buttonContainer}>
-                <IconButton
-                    icon="restore"
-                    mode="contained"
-                    size={20}
-                    disabled={timer.phase === 'longBreak'}
-                    onPress={handleRewind}
-                    iconColor='#FFFFFF'
-                    containerColor='#33658A'
-                />
-                <IconButton
-                    icon={state.isPlay ? 'pause' : 'play'}
-                    mode="contained"
-                    size={20}
-                    onPress={handlePlayPause}
-                    iconColor='#FFFFFF'
-                    containerColor='#33658A'
-                />
-                <IconButton
-                    icon="chevron-right"
-                    mode="contained"
-                    disabled={timer.phase === 'longBreak'}
-                    size={20}
-                    onPress={handleSkip}
-                    iconColor='#FFFFFF'
-                    containerColor='#33658A'
-                />
+                {renderGif()}
+                {
+                    cycleData.completedTimers === 0 && !timer.isRunning &&
+                    <Text style={styles.basicHeader}>New Cycle</Text>
+                }
+                <View style={styles.buttonContainer}>
+                    <IconButton
+                        icon="restore"
+                        mode="contained"
+                        size={20}
+                        disabled={timer.phase === 'longBreak'}
+                        onPress={handleRewind}
+                        iconColor='#FFFFFF'
+                        containerColor='#33658A'
+                    />
+                    <IconButton
+                        icon={state.isPlay ? 'pause' : 'play'}
+                        mode="contained"
+                        size={20}
+                        onPress={handlePlayPause}
+                        iconColor='#FFFFFF'
+                        containerColor='#33658A'
+                    />
+                    <IconButton
+                        icon="chevron-right"
+                        mode="contained"
+                        disabled={timer.phase === 'longBreak'}
+                        size={20}
+                        onPress={handleSkip}
+                        iconColor='#FFFFFF'
+                        containerColor='#33658A'
+                    />
+                </View>
             </View>
-        </View>
+            <GyroscopeNotifications phase={timer.phase} />
+        </PaperProvider>
     );
 }
 
@@ -233,13 +231,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 50,
         flexShrink: 1,
-        color: '#FFFFFF'
+        color: '#86BBD8'
     },
     headerText: {
         fontSize: 48,
         fontWeight: 'bold',
         marginTop: 50,
-        color: '#FFFFFF'
+        color: '#86BBD8'
     },
     basicHeader: {
         fontSize: 30,
