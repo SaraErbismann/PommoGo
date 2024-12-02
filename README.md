@@ -24,7 +24,6 @@ This app is built with the following technologies:
 - **React Native Paper**: UI components for a polished and responsive design.
 - **react-native-chart-kit**: For visualizing statistics with charts.
 - **date-fns**: Utilities for date manipulation and formatting.
-- **@expo/vector-icons**: For scalable vector icons in the app.
 
 ## Screens
 
